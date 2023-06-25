@@ -1,0 +1,13 @@
+{
+  "name": "template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node ."
+  },
+  "author": "Takechy",
+  "license": "MIT",
+  "type": "module"
+}
