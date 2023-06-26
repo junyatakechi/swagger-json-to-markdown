@@ -81,7 +81,7 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
         toc += `- [${tag}](#${tag})\n`;
 
         markdown += `<a id="${tag}"></a>\n`;
-        markdown += `## ${tag}\n`;
+        markdown += `# ${tag}\n`;
 
         for (const methodPath in pathsByTag[tag]) {
             const operation = pathsByTag[tag][methodPath];
@@ -90,14 +90,14 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
             toc += `  - [${methodPath}](#${anchorLink})\n`;
 
             markdown += `<a id="${anchorLink}"></a>\n`;
-            markdown += `### ${methodPath}\n`;
-            markdown += `#### Summary\n\n${operation.summary || ''}\n`;
-            markdown += `#### Description\n\n${operation.description || ''}\n`;
+            markdown += `## ${methodPath}\n`;
+            markdown += `### Summary\n\n${operation.summary || ''}\n`;
+            markdown += `### Description\n\n${operation.description || ''}\n`;
 
-            markdown += `#### Parameters\n\n`;
+            markdown += `### Parameters\n\n`;
             markdown += createTableFromParams(operation.parameters || []);
 
-            markdown += `#### Responses\n\n`;
+            markdown += `### Responses\n\n`;
             markdown += createTableFromResponses(operation.responses);
 
             markdown += '\n---\n';
