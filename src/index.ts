@@ -93,14 +93,14 @@ const createDefinitionTables = (definitions: { [definition: string]: Definition;
 
         // Check if the definition is an enum
         if (defDetails.enum) {
-            markdown += `Type: ${defDetails.type}\n\n`;
-
-            let description = `Enum: ${defDetails.enum.join(', ')}.`;
-            if (defDetails.default) {
-                description += ` Default: ${defDetails.default}.`;
+            markdown += `#### Enum:\n`;
+            for (const enumValue of defDetails.enum) {
+                markdown += `- ${enumValue}\n`;
             }
-
-            markdown += `${description}\n\n`;
+            if (defDetails.default) {
+                markdown += `- **Default**: ${defDetails.default}\n`;
+            }
+            markdown += '\n';
         } else if (defDetails.properties) {
             markdown += '| Property | Type | Description |\n';
             markdown += '|----------|------|-------------|\n';
