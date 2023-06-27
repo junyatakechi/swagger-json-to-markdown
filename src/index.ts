@@ -89,6 +89,10 @@ const createTableFromParams = (parameters: Parameter[], definitions: { [definiti
 
   for (const param of parameters) {
     let type = param.type;
+    let description = param.description;
+    if (param.name === 'body') {
+      description = '別途詳細';
+    }
     if (param.schema) {
       if (param.schema.$ref) {
         const ref = param.schema.$ref.split('/').slice(-1)[0];
@@ -100,7 +104,7 @@ const createTableFromParams = (parameters: Parameter[], definitions: { [definiti
       } else if (param.schema.properties) {
         type = "object";
 
-        subTable += `### ${param.name}\n\n`;
+        subTable += `### ${param.name}の詳細\n\n`;
         subTable += '| Property | Type | Description |\n';
         subTable += '|----------|------|-------------|\n';
 
@@ -114,12 +118,11 @@ const createTableFromParams = (parameters: Parameter[], definitions: { [definiti
         subTable += '\n';
       }
     }
-    table += `| ${param.name} | ${param.description} | ${type} | ${param.required} | ${param.in} |\n`;
+    table += `| ${param.name} | ${description} | ${type} | ${param.required} | ${param.in} |\n`;
   }
 
   return `${table}\n${subTable}`;
 };
-
 
   
 
