@@ -27,15 +27,15 @@ interface SwaggerPath {
 }
 
 interface Property {
-  type?: string;
-  description?: string;
-  items?: {
-    $ref: string;
-  };
-  $ref?: string;
-  enum?: string[];
-  default?: string;
-}
+    type?: string;
+    title?: string;
+    items?: {
+      $ref: string;
+    };
+    $ref?: string;
+    enum?: string[];
+    default?: string;
+  }
 
 interface SwaggerJson {
   info: {
@@ -94,58 +94,57 @@ const createTableFromResponses = (
   }
   return table;
 };
-
 const createDefinitionTables = (definitions: { [definition: string]: Definition }): { markdown: string; tocDefinitions: string } => {
-  let markdown = '';
-  let tocDefinitions = '';
-
-  for (const definition in definitions) {
-    tocDefinitions += `  - [${definition}](#${definition})\n`;
-
-    markdown += `## ${definition}\n\n`;
-    const defDetails = definitions[definition];
-
-    if (defDetails.enum) {
-      markdown += `### Enum:\n`;
-      for (const enumValue of defDetails.enum) {
-        markdown += `- ${enumValue}\n`;
-      }
-      if (defDetails.default) {
-        markdown += `- **Default**: ${defDetails.default}\n`;
-      }
-      markdown += '\n';
-    } else if (defDetails.properties) {
-      markdown += '| Property | Type | Description |\n';
-      markdown += '|----------|------|-------------|\n';
-
-      for (const property in defDetails.properties) {
-        const propDetails = defDetails.properties[property];
-
-        let propertyType = propDetails.type;
-        if (propDetails.$ref) {
-          const refLink = propDetails.$ref.split('/').slice(-1)[0];
-          propertyType = `[${refLink}](#${refLink})`;
-        } else if (propDetails.items && propDetails.items.$ref) {
-          const refLink = propDetails.items.$ref.split('/').slice(-1)[0];
-          propertyType = `[${refLink}](#${refLink})`;
+    let markdown = '';
+    let tocDefinitions = '';
+  
+    for (const definition in definitions) {
+      tocDefinitions += `  - [${definition}](#${definition})\n`;
+  
+      markdown += `## ${definition}\n\n`;
+      const defDetails = definitions[definition];
+  
+      if (defDetails.enum) {
+        markdown += `### Enum:\n`;
+        for (const enumValue of defDetails.enum) {
+          markdown += `- ${enumValue}\n`;
         }
-
-        let description = propDetails.description || '';
-        if (propDetails.enum) {
-          description += ` Enum: ${propDetails.enum.join(', ')}.`;
+        if (defDetails.default) {
+          markdown += `- **Default**: ${defDetails.default}\n`;
         }
-        if (propDetails.default) {
-          description += ` Default: ${propDetails.default}.`;
+        markdown += '\n';
+      } else if (defDetails.properties) {
+        markdown += '| Property | Type | Title |\n'; // Changed 'Description' to 'Title' here
+        markdown += '|----------|------|-------|\n'; // Changed '-------------' to '-------' here
+  
+        for (const property in defDetails.properties) {
+          const propDetails = defDetails.properties[property];
+  
+          let propertyType = propDetails.type;
+          if (propDetails.$ref) {
+            const refLink = propDetails.$ref.split('/').slice(-1)[0];
+            propertyType = `[${refLink}](#${refLink})`;
+          } else if (propDetails.items && propDetails.items.$ref) {
+            const refLink = propDetails.items.$ref.split('/').slice(-1)[0];
+            propertyType = `[${refLink}](#${refLink})`;
+          }
+  
+          let title = propDetails.title || ''; // Changed 'description' to 'title' here
+          if (propDetails.enum) {
+            title += ` Enum: ${propDetails.enum.join(', ')}.`; // Changed 'description' to 'title' here
+          }
+          if (propDetails.default) {
+            title += ` Default: ${propDetails.default}.`; // Changed 'description' to 'title' here
+          }
+  
+          markdown += `| ${property} | ${propertyType} | ${title} |\n`; // Changed 'description' to 'title' here
         }
-
-        markdown += `| ${property} | ${propertyType} | ${description} |\n`;
       }
+  
+      markdown += '---\n\n';
     }
 
-    markdown += '---\n\n';
-  }
-
-  return { markdown, tocDefinitions };
+    return { markdown, tocDefinitions };
 };
 
 const parseSwagger = (swaggerJson: SwaggerJson): string => {
