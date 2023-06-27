@@ -23,9 +23,26 @@ interface SwaggerPath {
     };
 }
 
+interface Property {
+    type?: string;
+    description?: string;
+    items?: {
+        $ref: string;
+    };
+    $ref?: string;
+}
+
 interface SwaggerJson {
     paths: {
         [path: string]: SwaggerPath;
+    };
+    definitions: {
+        [definition: string]: {
+            type: string;
+            properties?: {
+                [property: string]: Property;
+            };
+        };
     };
 }
 
@@ -58,7 +75,8 @@ const createTableFromResponses = (responses: { [statusCode: string]: { descripti
 
 const parseSwagger = (swaggerJson: SwaggerJson): string => {
     let markdown = '';
-    let toc = '## Table of Contents\n\n';
+    let tocPaths = '## Table of Contents for Paths\n\n';
+    let tocDefinitions = '## Table of Contents for Definitions\n\n';
 
     const pathsByTag: Record<string, SwaggerPath> = {};
 
@@ -78,7 +96,7 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
     }
 
     for (const tag in pathsByTag) {
-        toc += `- [${tag}](#${tag})\n`;
+        tocPaths += `- [${tag}](#${tag})\n`;
 
         markdown += `<a id="${tag}"></a>\n`;
         markdown += `# ${tag}\n`;
@@ -87,7 +105,7 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
             const operation = pathsByTag[tag][methodPath];
 
             const anchorLink = generateAnchorLink(tag, methodPath.split(' ')[0], methodPath.split(' ')[1]);
-            toc += `  - [${methodPath}](#${anchorLink})\n`;
+            tocPaths += `  - [${methodPath}](#${anchorLink})\n`;
 
             markdown += `<a id="${anchorLink}"></a>\n`;
             markdown += `## ${methodPath}\n`;
@@ -104,7 +122,35 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
         }
     }
 
-    return `${toc}\n${markdown}`;
+    markdown += '# Definition\n\n';
+    for (const definition in swaggerJson.definitions) {
+        tocDefinitions  += `  - [${definition}](#${definition})\n`;
+
+        markdown += `<a id="${definition}"></a>\n`;
+        markdown += `## ${definition}\n`;
+
+        if (swaggerJson.definitions[definition].properties) {
+            markdown += '| Property | Type | Description |\n';
+            markdown += '|----------|------|-------------|\n';
+
+            for (const property in swaggerJson.definitions[definition].properties) {
+                const propDetails = swaggerJson.definitions[definition].properties![property];
+
+                let propertyType = propDetails.type;
+                if (propDetails.$ref) {
+                    const refLink = propDetails.$ref.split("/").slice(-1)[0];
+                    propertyType = `[${refLink}](#${refLink})`;
+                } else if (propDetails.items && propDetails.items.$ref) {
+                    const refLink = propDetails.items.$ref.split("/").slice(-1)[0];
+                    propertyType = `[${refLink}](#${refLink})`;
+                }
+
+                markdown += `| ${property} | ${propertyType} | ${propDetails.description || ''} |\n`;
+            }
+        }
+    }
+
+    return `${tocPaths}\n${tocDefinitions}\n${markdown}`;
 };
 
 const main = (): void => {
