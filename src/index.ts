@@ -35,7 +35,18 @@ interface Property {
     $ref?: string;
     enum?: string[];
     default?: string;
-  }
+}
+
+  
+interface Definition {
+    title?: string;
+    type: string;
+    properties?: {
+      [property: string]: Property;
+    };
+    enum?: string[];
+    default?: string;
+}
 
 interface SwaggerJson {
   info: {
@@ -46,25 +57,10 @@ interface SwaggerJson {
     [path: string]: SwaggerPath;
   };
   definitions: {
-    [definition: string]: {
-      type: string;
-      properties?: {
-        [property: string]: Property;
-      };
-      enum?: string[];
-      default?: string;
-    };
+    [definition: string]: Definition;
   };
 }
 
-interface Definition {
-  type: string;
-  properties?: {
-    [property: string]: Property;
-  };
-  enum?: string[];
-  default?: string;
-}
 
 const generateAnchorLink = (tag: string, method: string, path: string): string => {
   return `${tag}-${method.toLowerCase()}-${path.replace(/\//g, '')}`;
@@ -107,6 +103,11 @@ const createDefinitionTables = (definitions: { [definition: string]: Definition 
       markdown += `<a id="${anchorLink}"></a>\n`; // add the anchor link
       markdown += `## ${definition}\n\n`;
       const defDetails = definitions[definition];
+
+      if (defDetails.title) {
+        markdown += `### Summary\n`
+        markdown += `${defDetails.title}\n\n`;
+      }
   
       if (defDetails.enum) {
         markdown += `### Enum:\n`;
