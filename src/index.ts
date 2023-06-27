@@ -79,6 +79,61 @@ const createTableFromResponses = (responses: { [statusCode: string]: { descripti
     return table;
 };
 
+const createDefinitionTables = (definitions: { [definition: string]: Definition; }): { markdown: string; tocDefinitions: string; } => {
+    let markdown = '';
+    let tocDefinitions = '';
+
+    for (const definition in definitions) {
+        tocDefinitions  += `  - [${definition}](#${definition})\n`;
+
+        markdown += `<a id="${definition}"></a>\n`;
+        markdown += `## ${definition}\n`;
+
+        const defDetails = definitions[definition];
+
+        // Check if the definition is an enum
+        if (defDetails.enum) {
+            markdown += `Type: ${defDetails.type}\n\n`;
+
+            let description = `Enum: ${defDetails.enum.join(', ')}.`;
+            if (defDetails.default) {
+                description += ` Default: ${defDetails.default}.`;
+            }
+
+            markdown += `${description}\n\n`;
+        } else if (defDetails.properties) {
+            markdown += '| Property | Type | Description |\n';
+            markdown += '|----------|------|-------------|\n';
+
+            for (const property in defDetails.properties) {
+                const propDetails = defDetails.properties![property];
+
+                let propertyType = propDetails.type;
+                if (propDetails.$ref) {
+                    const refLink = propDetails.$ref.split("/").slice(-1)[0];
+                    propertyType = `[${refLink}](#${refLink})`;
+                } else if (propDetails.items && propDetails.items.$ref) {
+                    const refLink = propDetails.items.$ref.split("/").slice(-1)[0];
+                    propertyType = `[${refLink}](#${refLink})`;
+                }
+
+                let description = propDetails.description || '';
+                if (propDetails.enum) {
+                    description += ` Enum: ${propDetails.enum.join(', ')}.`;
+                }
+                if (propDetails.default) {
+                    description += ` Default: ${propDetails.default}.`;
+                }
+
+                markdown += `| ${property} | ${propertyType} | ${description} |\n`;
+            }
+        }
+    }
+
+    return { markdown, tocDefinitions };
+};
+
+
 const parseSwagger = (swaggerJson: SwaggerJson): string => {
     let markdown = '';
     let tocPaths = '## Table of Contents for Paths\n\n';
@@ -128,56 +183,15 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
         }
     }
 
+    const definitionsTables = createDefinitionTables(swaggerJson.definitions);
     markdown += '# Definition\n\n';
-    for (const definition in swaggerJson.definitions) {
-        tocDefinitions  += `  - [${definition}](#${definition})\n`;
-
-        markdown += `<a id="${definition}"></a>\n`;
-        markdown += `## ${definition}\n`;
-
-        const defDetails = swaggerJson.definitions[definition];
-
-        // Check if the definition is an enum
-        if (defDetails.enum) {
-            markdown += `Type: ${defDetails.type}\n\n`;
-
-            let description = `Enum: ${defDetails.enum.join(', ')}.`;
-            if (defDetails.default) {
-                description += ` Default: ${defDetails.default}.`;
-            }
-
-            markdown += `${description}\n\n`;
-        } else if (defDetails.properties) {
-            markdown += '| Property | Type | Description |\n';
-            markdown += '|----------|------|-------------|\n';
-
-            for (const property in defDetails.properties) {
-                const propDetails = defDetails.properties![property];
-
-                let propertyType = propDetails.type;
-                if (propDetails.$ref) {
-                    const refLink = propDetails.$ref.split("/").slice(-1)[0];
-                    propertyType = `[${refLink}](#${refLink})`;
-                } else if (propDetails.items && propDetails.items.$ref) {
-                    const refLink = propDetails.items.$ref.split("/").slice(-1)[0];
-                    propertyType = `[${refLink}](#${refLink})`;
-                }
-
-                let description = propDetails.description || '';
-                if (propDetails.enum) {
-                    description += ` Enum: ${propDetails.enum.join(', ')}.`;
-                }
-                if (propDetails.default) {
-                    description += ` Default: ${propDetails.default}.`;
-                }
-
-                markdown += `| ${property} | ${propertyType} | ${description} |\n`;
-            }
-        }
-    }
+    markdown += definitionsTables.markdown;
+    tocDefinitions += definitionsTables.tocDefinitions;
 
     return `${tocPaths}\n${tocDefinitions}\n${markdown}`;
 };
+
+
 
 const main = (): void => {
     const swaggerFilePath = process.argv[2];  // Swagger JSON file path from console arguments
