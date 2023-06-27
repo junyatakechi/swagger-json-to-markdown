@@ -30,6 +30,8 @@ interface Property {
         $ref: string;
     };
     $ref?: string;
+    enum?: string[];
+    default?: string;
 }
 
 interface SwaggerJson {
@@ -37,13 +39,17 @@ interface SwaggerJson {
         [path: string]: SwaggerPath;
     };
     definitions: {
-        [definition: string]: {
-            type: string;
-            properties?: {
-                [property: string]: Property;
-            };
-        };
+        [definition: string]: Definition;
     };
+}
+
+interface Definition {
+    type: string;
+    properties?: {
+        [property: string]: Property;
+    };
+    enum?: string[];
+    default?: string;
 }
 
 const generateAnchorLink = (tag: string, method: string, path: string): string => {
@@ -129,12 +135,24 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
         markdown += `<a id="${definition}"></a>\n`;
         markdown += `## ${definition}\n`;
 
-        if (swaggerJson.definitions[definition].properties) {
+        const defDetails = swaggerJson.definitions[definition];
+
+        // Check if the definition is an enum
+        if (defDetails.enum) {
+            markdown += `Type: ${defDetails.type}\n\n`;
+
+            let description = `Enum: ${defDetails.enum.join(', ')}.`;
+            if (defDetails.default) {
+                description += ` Default: ${defDetails.default}.`;
+            }
+
+            markdown += `${description}\n\n`;
+        } else if (defDetails.properties) {
             markdown += '| Property | Type | Description |\n';
             markdown += '|----------|------|-------------|\n';
 
-            for (const property in swaggerJson.definitions[definition].properties) {
-                const propDetails = swaggerJson.definitions[definition].properties![property];
+            for (const property in defDetails.properties) {
+                const propDetails = defDetails.properties![property];
 
                 let propertyType = propDetails.type;
                 if (propDetails.$ref) {
@@ -145,7 +163,15 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
                     propertyType = `[${refLink}](#${refLink})`;
                 }
 
-                markdown += `| ${property} | ${propertyType} | ${propDetails.description || ''} |\n`;
+                let description = propDetails.description || '';
+                if (propDetails.enum) {
+                    description += ` Enum: ${propDetails.enum.join(', ')}.`;
+                }
+                if (propDetails.default) {
+                    description += ` Default: ${propDetails.default}.`;
+                }
+
+                markdown += `| ${property} | ${propertyType} | ${description} |\n`;
             }
         }
     }
