@@ -2,17 +2,23 @@
 import fs from 'fs';
 import path from 'path';
 
-interface Parameter {
-    name: string;
-    description: string;
-    type: string;
-    required: boolean;
-    in: string;
-    schema?: {
-      $ref: string;
-    };
+interface Schema {
+  $ref?: string;
+  type?: string;
+  properties?: {
+    [property: string]: Property;
+  };
+  title?: string;
 }
-  
+
+interface Parameter {
+  name: string;
+  description: string;
+  type: string;
+  required: boolean;
+  in: string;
+  schema?: Schema;
+}
 
 interface SwaggerPath {
   [method: string]: {
@@ -77,22 +83,44 @@ const generateAnchorLink = (tag: string, method: string = "", path: string = "")
 };
 
 const createTableFromParams = (parameters: Parameter[], definitions: { [definition: string]: Definition }): string => {
-    let table = '| Name | Description | Type | Required | In |\n';
-    table += '|------|-------------|------|----------|----|\n';
-    for (const param of parameters) {
-      let type = param.type;
-      if (param.schema && param.schema.$ref) {
+  let table = '| Name | Description | Type | Required | In |\n';
+  table += '|------|-------------|------|----------|----|\n';
+  let subTable = '';
+
+  for (const param of parameters) {
+    let type = param.type;
+    if (param.schema) {
+      if (param.schema.$ref) {
         const ref = param.schema.$ref.split('/').slice(-1)[0];
         const refDefinition = definitions[ref];
         if (refDefinition) {
-          const anchorLink = generateAnchorLink(ref);  // generate anchor link
+          const anchorLink = generateAnchorLink(ref);
           type = `[${ref}](#${anchorLink})`;
         }
+      } else if (param.schema.properties) {
+        type = "object";
+
+        subTable += `### ${param.name}\n\n`;
+        subTable += '| Property | Type | Description |\n';
+        subTable += '|----------|------|-------------|\n';
+
+        for (const prop in param.schema.properties) {
+          let propertyType = param.schema.properties[prop].type;
+          let propertyTitle = param.schema.properties[prop].title || '';
+
+          subTable += `| ${prop} | ${propertyType} | ${propertyTitle} |\n`;
+        }
+
+        subTable += '\n';
       }
-      table += `| ${param.name} | ${param.description} | ${type} | ${param.required} | ${param.in} |\n`;
     }
-    return table;
-  };
+    table += `| ${param.name} | ${param.description} | ${type} | ${param.required} | ${param.in} |\n`;
+  }
+
+  return `${table}\n${subTable}`;
+};
+
+
   
 
 const createTableFromResponses = (
