@@ -61,9 +61,15 @@ interface SwaggerJson {
   };
 }
 
-
-const generateAnchorLink = (tag: string, method: string, path: string): string => {
-  return `${tag}-${method.toLowerCase()}-${path.replace(/\//g, '')}`;
+const generateAnchorLink = (tag: string, method: string = "", path: string = ""): string => {
+    let anchorLink = tag;
+    if (method) {
+      anchorLink += `-${method.toLowerCase()}`;
+    }
+    if (path) {
+      anchorLink += `-${path.replace(/\//g, '')}`;
+    }
+    return anchorLink;
 };
 
 const createTableFromParams = (parameters: Parameter[]): string => {
@@ -96,7 +102,7 @@ const createDefinitionTables = (definitions: { [definition: string]: Definition 
     let tocDefinitions = '';
   
     for (const definition in definitions) {
-      const anchorLink = generateAnchorLink(definition, "", ""); // generate the anchor link
+        const anchorLink = generateAnchorLink(definition);
   
       tocDefinitions += `  - [${definition}](#${anchorLink})\n`;
   
@@ -127,10 +133,10 @@ const createDefinitionTables = (definitions: { [definition: string]: Definition 
   
           let propertyType = propDetails.type;
           if (propDetails.$ref) {
-            const refLink = generateAnchorLink(propDetails.$ref.split('/').slice(-1)[0], "", ""); // generate the anchor link
+            const refLink = generateAnchorLink(propDetails.$ref.split('/').slice(-1)[0]); // generate the anchor link
             propertyType = `[${refLink}](#${refLink})`;
           } else if (propDetails.items && propDetails.items.$ref) {
-            const refLink = generateAnchorLink(propDetails.items.$ref.split('/').slice(-1)[0], "", ""); // generate the anchor link
+            const refLink = generateAnchorLink(propDetails.items.$ref.split('/').slice(-1)[0]); // generate the anchor link
             propertyType = `[${refLink}](#${refLink})`;
           }
   
