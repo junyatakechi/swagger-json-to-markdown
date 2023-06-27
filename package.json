@@ -1,5 +1,5 @@
 {
-  "name": "template",
+  "name": "swagger-json-to-markdown",
   "version": "1.0.0",
   "description": "",
   "main": "./dist/index.js",
@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "npm run build && node ."
   },
-  "author": "Takechy",
+  "author": "junyatakechi",
   "license": "MIT",
   "type": "module"
 }
