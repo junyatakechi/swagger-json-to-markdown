@@ -94,13 +94,17 @@ const createTableFromResponses = (
   }
   return table;
 };
+
 const createDefinitionTables = (definitions: { [definition: string]: Definition }): { markdown: string; tocDefinitions: string } => {
     let markdown = '';
     let tocDefinitions = '';
   
     for (const definition in definitions) {
-      tocDefinitions += `  - [${definition}](#${definition})\n`;
+      const anchorLink = generateAnchorLink(definition, "", ""); // generate the anchor link
   
+      tocDefinitions += `  - [${definition}](#${anchorLink})\n`;
+  
+      markdown += `<a id="${anchorLink}"></a>\n`; // add the anchor link
       markdown += `## ${definition}\n\n`;
       const defDetails = definitions[definition];
   
@@ -114,38 +118,39 @@ const createDefinitionTables = (definitions: { [definition: string]: Definition 
         }
         markdown += '\n';
       } else if (defDetails.properties) {
-        markdown += '| Property | Type | Title |\n'; // Changed 'Description' to 'Title' here
-        markdown += '|----------|------|-------|\n'; // Changed '-------------' to '-------' here
+        markdown += '| Property | Type | Title |\n';
+        markdown += '|----------|------|-------|\n';
   
         for (const property in defDetails.properties) {
           const propDetails = defDetails.properties[property];
   
           let propertyType = propDetails.type;
           if (propDetails.$ref) {
-            const refLink = propDetails.$ref.split('/').slice(-1)[0];
+            const refLink = generateAnchorLink(propDetails.$ref.split('/').slice(-1)[0], "", ""); // generate the anchor link
             propertyType = `[${refLink}](#${refLink})`;
           } else if (propDetails.items && propDetails.items.$ref) {
-            const refLink = propDetails.items.$ref.split('/').slice(-1)[0];
+            const refLink = generateAnchorLink(propDetails.items.$ref.split('/').slice(-1)[0], "", ""); // generate the anchor link
             propertyType = `[${refLink}](#${refLink})`;
           }
   
-          let title = propDetails.title || ''; // Changed 'description' to 'title' here
+          let title = propDetails.title || '';
           if (propDetails.enum) {
-            title += ` Enum: ${propDetails.enum.join(', ')}.`; // Changed 'description' to 'title' here
+            title += ` Enum: ${propDetails.enum.join(', ')}.`;
           }
           if (propDetails.default) {
-            title += ` Default: ${propDetails.default}.`; // Changed 'description' to 'title' here
+            title += ` Default: ${propDetails.default}.`;
           }
   
-          markdown += `| ${property} | ${propertyType} | ${title} |\n`; // Changed 'description' to 'title' here
+          markdown += `| ${property} | ${propertyType} | ${title} |\n`;
         }
       }
   
       markdown += '---\n\n';
     }
-
+  
     return { markdown, tocDefinitions };
 };
+  
 
 const parseSwagger = (swaggerJson: SwaggerJson): string => {
   const date = new Date();
