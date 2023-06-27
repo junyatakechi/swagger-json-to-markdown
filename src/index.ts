@@ -3,12 +3,16 @@ import fs from 'fs';
 import path from 'path';
 
 interface Parameter {
-  name: string;
-  description: string;
-  type: string;
-  required: boolean;
-  in: string;
+    name: string;
+    description: string;
+    type: string;
+    required: boolean;
+    in: string;
+    schema?: {
+      $ref: string;
+    };
 }
+  
 
 interface SwaggerPath {
   [method: string]: {
@@ -72,14 +76,24 @@ const generateAnchorLink = (tag: string, method: string = "", path: string = "")
     return anchorLink;
 };
 
-const createTableFromParams = (parameters: Parameter[]): string => {
-  let table = '| Name | Description | Type | Required | In |\n';
-  table += '|------|-------------|------|----------|----|\n';
-  for (const param of parameters) {
-    table += `| ${param.name} | ${param.description} | ${param.type} | ${param.required} | ${param.in} |\n`;
-  }
-  return table;
-};
+const createTableFromParams = (parameters: Parameter[], definitions: { [definition: string]: Definition }): string => {
+    let table = '| Name | Description | Type | Required | In |\n';
+    table += '|------|-------------|------|----------|----|\n';
+    for (const param of parameters) {
+      let type = param.type;
+      if (param.schema && param.schema.$ref) {
+        const ref = param.schema.$ref.split('/').slice(-1)[0];
+        const refDefinition = definitions[ref];
+        if (refDefinition) {
+          const anchorLink = generateAnchorLink(ref);  // generate anchor link
+          type = `[${ref}](#${anchorLink})`;
+        }
+      }
+      table += `| ${param.name} | ${param.description} | ${type} | ${param.required} | ${param.in} |\n`;
+    }
+    return table;
+  };
+  
 
 const createTableFromResponses = (
   responses: { [statusCode: string]: { description: string; schema?: { $ref: string } } }
@@ -190,7 +204,7 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
     markdown += `# ${tag}\n\n`;
 
     for (const methodPath in pathsByTag[tag]) {
-      const operation = pathsByTag[tag][methodPath];
+    　const operation = pathsByTag[tag][methodPath];
 
       const anchorLink = generateAnchorLink(tag, methodPath.split(' ')[0], methodPath.split(' ')[1]);
       tocPaths += `  - [${methodPath}](#${anchorLink})\n`;
@@ -200,7 +214,8 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
       markdown += `### Summary\n\n${operation.summary || ''}\n\n`;
 
       markdown += `### Parameters\n\n`;
-      markdown += createTableFromParams(operation.parameters || []);
+      markdown += createTableFromParams(operation.parameters || [], swaggerJson.definitions);
+
 
       markdown += `### Responses\n\n`;
       markdown += createTableFromResponses(operation.responses);
@@ -210,7 +225,7 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
   }
 
   const definitionsTables = createDefinitionTables(swaggerJson.definitions);
-  markdown += '## Definitions\n\n';
+  markdown += '# Definitions\n\n';
   markdown += definitionsTables.markdown;
   tocDefinitions += definitionsTables.tocDefinitions;
 
