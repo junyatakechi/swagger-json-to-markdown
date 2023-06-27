@@ -35,11 +35,20 @@ interface Property {
 }
 
 interface SwaggerJson {
+    info: {
+        title: string;
+        version: string;
+    };
     paths: {
         [path: string]: SwaggerPath;
     };
     definitions: {
-        [definition: string]: Definition;
+        [definition: string]: {
+            type: string;
+            properties?: {
+                [property: string]: Property;
+            };
+        };
     };
 }
 
@@ -135,7 +144,9 @@ const createDefinitionTables = (definitions: { [definition: string]: Definition;
 
 
 const parseSwagger = (swaggerJson: SwaggerJson): string => {
-    let markdown = '';
+    const date = new Date();
+    let title = `# ${swaggerJson.info.title}\n\nVersion: ${swaggerJson.info.version}\n\nUpdated: ${date.toLocaleString()}\n\n`;
+    let markdown = ""
     let tocPaths = '## Table of Contents for Paths\n\n';
     let tocDefinitions = '## Table of Contents for Definitions\n\n';
 
@@ -188,7 +199,7 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
     markdown += definitionsTables.markdown;
     tocDefinitions += definitionsTables.tocDefinitions;
 
-    return `${tocPaths}\n${tocDefinitions}\n${markdown}`;
+    return `${title}\n${tocPaths}\n${tocDefinitions}\n${markdown}`;
 };
 
 
