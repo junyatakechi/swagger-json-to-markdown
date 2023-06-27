@@ -20,14 +20,15 @@
       - summaryプロパティ対応
   - message
       - Request
-          - message定義のコメントはswagger.jsonに反映されない
-          - 各項目のコメントがdescriptionプロパティ対応
+          - message定義のコメントが、titleプロパティ対応
+          - 各項目のコメントは、**description**プロパティ対応
       - Response
           - message定義のコメントが、titleプロパティ対応
-          - 各項目のコメントもtitleプロパティ対応
+          - 各項目のコメントも、titleプロパティ対応
 - definition
     - message
-        - titleプロパティ対応
+        - message定義のコメントが、titleプロパティ対応
+        - 各項目のコメントも、titleプロパティ対応
 
 
 # 実行環境
