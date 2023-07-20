@@ -1,12 +1,17 @@
 
 # 目次
 - [目次](#目次)
+- [使い方](#使い方)
 - [概要](#概要)
 - [コメントの書き方](#コメントの書き方)
   - [Protobufのコメントの書き方とswagger.json項目対応](#protobufのコメントの書き方とswaggerjson項目対応)
 - [実行環境](#実行環境)
 - [Nodejsについて](#nodejsについて)
 - [import文の注意](#import文の注意)
+
+# 使い方
+- 実行コマンド: `npm run start ${swagger.jsonのパス}`
+- 出力先: 上記のインプットパスと同じディレクトに`${インプット名}.md`ファイルが出力される。
 
 # 概要
 - [bufbuild/buf](https://github.com/bufbuild/buf)で出力されたswagger.jsonを使用します。

@@ -22,6 +22,7 @@ interface Parameter {
 
 interface SwaggerPath {
   [method: string]: {
+    operationId: string;
     tags?: string[];
     summary?: string;
     parameters?: Parameter[];
@@ -242,8 +243,8 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
 
       markdown += `<a id="${anchorLink}"></a>\n`;
       markdown += `## ${methodPath}\n\n`;
+      markdown += `OperationId: **${operation.operationId || ''}**\n\n`;
       markdown += `### Summary\n\n${operation.summary || ''}\n\n`;
-
       markdown += `### Parameters\n\n`;
       markdown += createTableFromParams(operation.parameters || [], swaggerJson.definitions);
 
