@@ -230,7 +230,7 @@ const parseSwagger = (swaggerJson: SwaggerJson): string => {
   }
 
   for (const tag in pathsByTag) {
-    tocPaths += `- [${tag}](#${tag})\n\n`;
+    tocPaths += `- [${tag}](#${tag})\n`;
 
     markdown += `<a id="${tag}"></a>\n`;
     markdown += `# ${tag}\n\n`;
